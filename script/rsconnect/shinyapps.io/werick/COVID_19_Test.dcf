@@ -1,0 +1,12 @@
+name: COVID_19_Test
+title: COVID_19_Test
+username:
+account: werick
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 2072703
+bundleId: 2980866
+url: https://werick.shinyapps.io/COVID_19_Test/
+when: 1586266490.45045
+asMultiple: FALSE
+asStatic: FALSE
