@@ -7,9 +7,9 @@ library(dplyr)
 
 getwd()
 #Get data
-filepath <- "D:/R-Dev/ShinyWebapp1/data/COVID_19.csv"
-myfile <- file.path(paste(getwd(),"/data"), "COVID_19.csv") 
-covid_df <- read.csv(file = filepath, stringsAsFactors = FALSE)
+filepath <- "data/COVID_19.csv"
+myfile <- file.path("data", "COVID_19.csv") 
+covid_df <- read.csv(file = myfile, stringsAsFactors = FALSE)
 
 covid_df$dateRep_0<-as.Date(as.character(covid_df$dateRep), format = "%d/%m/%Y")
 
