@@ -11,6 +11,7 @@ library(sf) # R Geospatial  data abstraction library
 #library(rgdal) # R Geospatial  data abstraction library
 #library(gdata)
 library(leaflet)
+library(plotly)
 
 #source("script/helperFunctions.R")
 
@@ -82,6 +83,9 @@ add_county_code <- function(df) {
 mysp_df_county_polygons$Covid_19_stats <- apply(mysp_df_county_polygons,1,add_covid19_stats)
 mysp_df_county_polygons$county_code <- apply(mysp_df_county_polygons,1,add_county_code)
 
+mysp_df_county_polygons[toupper(mysp_df_county_polygons$COUNTY)=="KEIYO-MARAKWET",'COUNTY']<-'Elgeyo-Marakwet'
+mysp_df_county_polygons[toupper(mysp_df_county_polygons$COUNTY)=="THARAKA",'COUNTY']<-'Tharaka-Nithi'
+
 covid_df_all$datereported_0<-as.Date(as.character(covid_df_all$datereported_0))
 
 covid_df_all<- covid_df_all %>%
@@ -151,7 +155,7 @@ server <- function(input, output){
   
   my_theme <- theme_bw(base_size = 12) +
     theme(panel.grid.minor = element_blank()) +
-    theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5, color = "black"))
+    theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust = 0.5, color = "black"))
   
   output$totalCases<- renderText({
     t_cases()
@@ -175,27 +179,95 @@ server <- function(input, output){
     paste(a,"(",p,"%)")
   })
   
-  output$map1 <- renderPlot({
+  output$map1 <- renderPlotly({
     
     idata <- as.incidence(x = covid_df_all[,c("new_cases")], dates = covid_df_all$datereported_0 )
     
     # Modelling Incidence. This done using the fit function from the incidence package
     early.fit <- fit(idata)
-    plot(idata, fit = early.fit, border="white") + my_theme + theme(legend.position = c(0.15, 0.8))
+    p<-plot(idata, fit = early.fit, border="white") + my_theme + theme(legend.position = c(0.15, 0.8))
+    ggplotly(p) %>% config(displayModeBar = FALSE)
   })
   
-  output$plot2 <- renderPlot({
+  output$plot2 <- renderPlotly({
     idata <- as.incidence(x = covid_df_all[,c("new_cases","new_deaths","new_recovered")], dates = covid_df_all$datereported_0 )
     
-    plot(idata, border="white") + my_theme + theme(legend.position = c(0.15, 0.8))
+    p<-plot(idata, border="white") + my_theme + theme(legend.position = c(0.15, 0.8))
+    ggplotly(p) %>% config(displayModeBar = FALSE)
   })
   
-  output$plot3 <- renderPlot({
+  output$plot3 <- renderPlotly({
     idata <- as.incidence(x = covid_df_all[,c("new_cases","new_deaths","new_recovered")], dates = covid_df_all$datereported_0 )
     iculum <- cumulate(idata)
-    plot(iculum)
+    p<-plot(iculum)
+    ggplotly(p) %>% config(displayModeBar = FALSE)
     
   })
+  
+  #Total Cummulative Cases
+  output$plot_cases_linear <- renderPlotly({
+    # Basic line plot
+    p <- ggplot(data = covid_df_all, aes(x = datereported_0, y = cum_total_cases))+
+      geom_line(color = "#faa632", size = 2) +
+      ggtitle("Total Cases (Linear Scale )") +
+      xlab("") +
+      ylab("Total Cases")+
+      scale_x_date(date_labels = "%d-%b", date_breaks = "1 week") +
+      theme(axis.text.x=element_text(angle=45, hjust=1)) +
+      theme(plot.title = element_text(color="black", size=14, face="bold"))+
+      my_theme
+    ggplotly(p) %>% config(displayModeBar = FALSE)
+  })
+  
+  #Total Cummulative Cases
+  output$plot_cases_log <- renderPlotly({
+    
+    # Basic line plot
+    p <- ggplot(data = covid_df_all, aes(x = datereported_0, y = cum_total_cases))+
+      geom_line(color = "#faa632", size = 2) +
+      xlab("") +
+      ylab("Total Cases")+
+      ggtitle("Total Cases (Logarithmic Scale )") +
+      scale_x_date(date_labels = "%d-%b", date_breaks = "1 week") +
+      theme(axis.text.x=element_text(angle=45, hjust=1)) +
+      theme(plot.title = element_text(color="black", size=14, face="bold"))+
+      my_theme +
+      scale_y_log10()
+    ggplotly(p) %>% config(displayModeBar = FALSE)
+  })
+  
+  #Total Cummulative Recovered
+  output$plot_recovered_linear <- renderPlotly({
+    # Basic line plot
+    p <- ggplot(data = covid_df_all, aes(x = datereported_0, y = cum_total_recovered))+
+      geom_line(color = "#136207", size = 2) +
+      ggtitle("Total Recovered (Linear Scale )") +
+      xlab("") +
+      ylab("Total Recovered")+
+      scale_x_date(date_labels = "%d-%b", date_breaks = "1 week") +
+      theme(axis.text.x=element_text(angle=45, hjust=1)) +
+      theme(plot.title = element_text(color="black", size=14, face="bold"))+
+      my_theme
+    ggplotly(p) %>% config(displayModeBar = FALSE)
+  })
+  
+  #Total Cummulative Recovered
+  output$plot_recovered_log <- renderPlotly({
+    
+    # Basic line plot
+    p <- ggplot(data = covid_df_all, aes(x = datereported_0, y = cum_total_recovered))+
+      geom_line(color = "#136207", size = 2) +
+      xlab("") +
+      ylab("Total Recovered")+
+      ggtitle("Total Recovered (Logarithmic Scale )") +
+      scale_x_date(date_labels = "%d-%b", date_breaks = "1 week") +
+      theme(axis.text.x=element_text(angle=45, hjust=1)) +
+      theme(plot.title = element_text(color="black", size=14, face="bold"))+
+      my_theme +
+      scale_y_log10()
+    ggplotly(p) %>% config(displayModeBar = FALSE)
+  })
+  
   
   #Dislay data table
   output$dailyIncidence <-  DT::renderDataTable({

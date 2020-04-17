@@ -4,6 +4,7 @@ library(shinydashboard)
 library(lubridate)
 #library(gdata)
 library(leaflet)
+library(plotly)
 
 
 ui <- dashboardPage(
@@ -21,7 +22,7 @@ ui <- dashboardPage(
   dashboardBody(
     tabItems(
       tabItem(tabName = "first",
-              h2(paste("COVID-19 Epidermic Curve with the Predicted Growth as at ", Sys.Date()-days(1))),
+              h2(paste("KENYA COVID-19 STATISTICS AS AT ", Sys.Date()-days(1))),
               fluidRow(
                 tags$head(tags$style(HTML("
                                 #totalCases{
@@ -65,7 +66,7 @@ ui <- dashboardPage(
                                 }
                                 "))),
                 box(title="Epidermic Curve with Predicted Incidence and 95% CI", solidHeader = TRUE,
-                    plotOutput("map1")),
+                    plotlyOutput("map1")),
                 
                 box(title="Daily Incidence", solidHeader = TRUE,
                     div(style = 'overflow-x: scroll', DT::dataTableOutput('dailyIncidence')),
@@ -74,16 +75,35 @@ ui <- dashboardPage(
               )
               ),
       tabItem(tabName = "second",
-              h2("Incidence, Recovery and Death"),
-              plotOutput("plot2")
+              h2(paste("KENYA COVID-19 Combined Incidence, Recovery and Death as at",Sys.Date()-days(1))),
+              fluidRow(
+                plotlyOutput("plot2"),
+              )
+              # ,
+              # fluidRow(
+              #   tabBox(
+              #     title = "Cummulative Cases",
+              #     # The id lets us use input$tabset1 on the server to find the current tab
+              #     id = "tabset1", height = "200px",
+              #     tabPanel("linear", plotlyOutput("plot_cases_linear")),
+              #     tabPanel("logarithmic", plotlyOutput("plot_cases_log"))
+              #   ),
+              #   tabBox(
+              #     title = "Cummulative Recovered",
+              #     # The id lets us use input$tabset1 on the server to find the current tab
+              #     id = "tabset2", height = "200px",
+              #     tabPanel("linear", plotlyOutput("plot_recovered_linear")),
+              #     tabPanel("logarithmic", plotlyOutput("plot_recovered_log"))
+              #   )
+              # )
               ),
       tabItem(tabName = "map",
-              h2("Confirmed COVID-19 Cases By County"),
+              h2(paste("Confirmed COVID-19 Cases By County in KENYA as at", Sys.Date()-days(1))),
               leafletOutput("testMap")
       ),
       tabItem(tabName = "epicumm",
-              h2("Covid-19 Cummulative Incidence"),
-              plotOutput("plot3")
+              h2(paste("KENYA Covid-19 Cummulative Incidence, Deaths and Recovery as at", Sys.Date()-days(1))),
+              plotlyOutput("plot3")
       )
     )
   )
