@@ -66,7 +66,7 @@ ui <- dashboardPage(
                                 }
                                 "))),
                 box(title="Epidermic Curve with Predicted Incidence and 95% CI", solidHeader = TRUE,
-                    plotlyOutput("map1")),
+                    plotlyOutput("plot1_epi_curve")),
                 
                 box(title="Daily Incidence", solidHeader = TRUE,
                     div(style = 'overflow-x: scroll', DT::dataTableOutput('dailyIncidence')),
@@ -75,9 +75,20 @@ ui <- dashboardPage(
               )
               ),
       tabItem(tabName = "second",
-              h2(paste("KENYA COVID-19 Combined Incidence, Recovery and Death as at",Sys.Date()-days(1))),
               fluidRow(
-                plotlyOutput("plot2"),
+                
+                box(title=paste("KENYA COVID-19 Combined Daily Incidence, Recovery and Death as at",Sys.Date()-days(1)), solidHeader = TRUE,
+                    width = 12,                    
+                    plotlyOutput("plot2_combined") 
+                )
+                # ,
+                # tabBox(
+                #   title = "Daily COVID-19 Recovered",
+                #   # The id lets us use input$tabset1 on the server to find the current tab
+                #   id = "tabset1", height = "200px",
+                #   tabPanel("linear", plotlyOutput("plot_rec_cases_linear")),
+                #   tabPanel("logarithmic", plotlyOutput("plot_rec_cases_log"))
+                # )
               )
               # ,
               # fluidRow(
@@ -102,8 +113,24 @@ ui <- dashboardPage(
               leafletOutput("testMap")
       ),
       tabItem(tabName = "epicumm",
-              h2(paste("KENYA Covid-19 Cummulative Incidence, Deaths and Recovery as at", Sys.Date()-days(1))),
-              plotlyOutput("plot3")
+              fluidRow(
+                box(title=paste("KENYA Covid-19 Cummulative Incidence, Deaths and Recovery as at", Sys.Date()-days(1)), solidHeader = TRUE,
+                    width = 12,
+                    plotlyOutput("plot3_cummulative")
+                )
+              )
+              ,
+              fluidRow(
+
+                tabBox(
+                  width = 12,
+                  title = "Cummulative COVID-19 Cases",
+                  # The id lets us use input$tabset1 on the server to find the current tab
+                  id = "tabset1", height = "100px",
+                  tabPanel("linear", plotlyOutput("plot_cases_linear")),
+                  tabPanel("logarithmic", plotlyOutput("plot_cases_log"))
+                )
+              )
       )
     )
   )

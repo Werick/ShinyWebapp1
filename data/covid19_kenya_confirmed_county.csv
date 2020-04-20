@@ -1,5 +1,5 @@
 admin1Pcode,admin1Name_en,covid_19
-KE001,Mombasa,38
+KE001,Mombasa,54
 KE002,Kwale,1
 KE003,Kilifi,10
 KE004,Tana River,0
@@ -32,7 +32,7 @@ KE030,Baringo,0
 KE031,Laikipia,2
 KE032,Nakuru,5
 KE033,Narok,0
-KE034,Kajiado,2
+KE034,Kajiado,3
 KE035,Kericho,0
 KE036,Bomet,0
 KE037,Kakamega,2
@@ -41,8 +41,8 @@ KE039,Bungoma,0
 KE040,Busia,0
 KE041,Siaya,2
 KE042,Kisumu,0
-KE043,Homa Bay,1
+KE043,Homa Bay,2
 KE044,Migori,0
 KE045,Kisii,1
 KE046,Nyamira,1
-KE047,Nairobi,106
+KE047,Nairobi,122

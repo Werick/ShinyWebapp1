@@ -5,6 +5,7 @@ library(EpiCurve)
 library(incidence)
 library(ggplot2)
 library(dplyr)
+library(tidyr)
 library(DT)
 library(lubridate)
 library(sf) # R Geospatial  data abstraction library
@@ -90,6 +91,12 @@ covid_df_all$datereported_0<-as.Date(as.character(covid_df_all$datereported_0))
 
 covid_df_all<- covid_df_all %>%
   arrange(datereported_0)
+
+#Group all this ing single graph
+# use tidyvers gather function This will used to make combined linear and log graph
+covid_df_long <- covid_df_all %>%
+  select(datereported_0,cum_total_cases,cum_total_deaths,cum_total_recovered) %>%
+  gather("id","value",2:4)
 
 #Add cololrs to the map based on COVID 19 stataus
 bins <- c(0, 2, 5, 10, 20, 40, 80, 150,Inf)
@@ -179,43 +186,62 @@ server <- function(input, output){
     paste(a,"(",p,"%)")
   })
   
-  output$map1 <- renderPlotly({
+  # EPI Curve - daily incidence and predicted curve with 95% CI
+  output$plot1_epi_curve <- renderPlotly({
     
     idata <- as.incidence(x = covid_df_all[,c("new_cases")], dates = covid_df_all$datereported_0 )
     
     # Modelling Incidence. This done using the fit function from the incidence package
     early.fit <- fit(idata)
-    p<-plot(idata, fit = early.fit, border="white") + my_theme + theme(legend.position = c(0.15, 0.8))
+    p<-plot(idata, fit = early.fit, border="white") + my_theme + theme(legend.position = "none")+
+      scale_x_date(labels = date_format("%d-%b"))
     ggplotly(p) %>% config(displayModeBar = FALSE)
   })
   
-  output$plot2 <- renderPlotly({
+  #Combined bar graph daily cases, deaths and recovered cases
+  output$plot2_combined <- renderPlotly({
     idata <- as.incidence(x = covid_df_all[,c("new_cases","new_deaths","new_recovered")], dates = covid_df_all$datereported_0 )
     
-    p<-plot(idata, border="white") + my_theme + theme(legend.position = c(0.15, 0.8))
+    p<-plot(idata, border="white") + my_theme + theme(legend.position = c(0.15, 0.8))+
+       theme(legend.position = "top", 
+              legend.direction   = "horizontal",
+              legend.title = element_blank()) +
+      scale_x_date(labels = date_format("%d-%b"))
     ggplotly(p) %>% config(displayModeBar = FALSE)
   })
   
-  output$plot3 <- renderPlotly({
+  #Combined bar graph Cummulative cases, deaths and recovered cases
+  output$plot3_cummulative <- renderPlotly({
     idata <- as.incidence(x = covid_df_all[,c("new_cases","new_deaths","new_recovered")], dates = covid_df_all$datereported_0 )
     iculum <- cumulate(idata)
-    p<-plot(iculum)
+    p<-plot(iculum) + my_theme + theme(legend.position = "top", 
+                                       legend.direction   = "horizontal",
+                                       legend.title = element_blank()) +
+      scale_x_date(labels = date_format("%d-%b"))
     ggplotly(p) %>% config(displayModeBar = FALSE)
     
   })
+  
+  #Group all this using single graph
+  # use tidyvers gather function
+  
   
   #Total Cummulative Cases
   output$plot_cases_linear <- renderPlotly({
     # Basic line plot
-    p <- ggplot(data = covid_df_all, aes(x = datereported_0, y = cum_total_cases))+
-      geom_line(color = "#faa632", size = 2) +
-      ggtitle("Total Cases (Linear Scale )") +
+    # color = "#faa632", size = 2
+    p <- ggplot(data = covid_df_long, aes(x = datereported_0, y = value,color =id))+
+      geom_line(aes(group =id), size = 1) +
+      ggtitle("Total Cases, Deaths and Recovered (Linear Scale )") +
       xlab("") +
       ylab("Total Cases")+
       scale_x_date(date_labels = "%d-%b", date_breaks = "1 week") +
       theme(axis.text.x=element_text(angle=45, hjust=1)) +
       theme(plot.title = element_text(color="black", size=14, face="bold"))+
-      my_theme
+      my_theme + theme(legend.position = "bottom", 
+                         legend.direction   = "horizontal",
+                         legend.title = element_blank()) +
+      scale_colour_manual(values = c("cum_total_cases" = "#faa632", "cum_total_deaths" = "#FF0000", "cum_total_recovered" = "#136207"))
     ggplotly(p) %>% config(displayModeBar = FALSE)
   })
   
@@ -223,18 +249,22 @@ server <- function(input, output){
   output$plot_cases_log <- renderPlotly({
     
     # Basic line plot
-    p <- ggplot(data = covid_df_all, aes(x = datereported_0, y = cum_total_cases))+
-      geom_line(color = "#faa632", size = 2) +
+    p <- ggplot(data = covid_df_long, aes(x = datereported_0, y = value,color =id))+
+      geom_line(aes(group =id), size = 1) +
+      ggtitle("Total Cases, Deaths and Recovered (Logarithmic Scale )") +
       xlab("") +
       ylab("Total Cases")+
-      ggtitle("Total Cases (Logarithmic Scale )") +
       scale_x_date(date_labels = "%d-%b", date_breaks = "1 week") +
       theme(axis.text.x=element_text(angle=45, hjust=1)) +
       theme(plot.title = element_text(color="black", size=14, face="bold"))+
-      my_theme +
+      my_theme + theme(legend.position = "bottom", 
+                       legend.direction   = "horizontal",
+                       legend.title = element_blank()) +
+      scale_colour_manual(values = c("cum_total_cases" = "#faa632", "cum_total_deaths" = "#FF0000", "cum_total_recovered" = "#136207"))+
       scale_y_log10()
     ggplotly(p) %>% config(displayModeBar = FALSE)
   })
+  
   
   #Total Cummulative Recovered
   output$plot_recovered_linear <- renderPlotly({
@@ -269,17 +299,47 @@ server <- function(input, output){
   })
   
   
+  #Total deaths Deaths on line graph Linear scale
+  output$plot_death_log <- renderPlotly({
+    p <- ggplot(data = covid_df_all, aes(x = datereported_0, y = cum_total_deaths))+
+      geom_line(color = "#FF0000", size = 2) +
+      xlab("") +
+      ylab("Total Deaths")+
+      ggtitle("Total Deaths (Logarithmic Scale )")+
+      scale_x_date(date_labels = "%d-%b", date_breaks = "1 week") +
+      theme(axis.text.x=element_text(angle=45, hjust=1)) +
+      theme(plot.title = element_text(color="black", size=14, face="bold"))+
+      my_theme + 
+      scale_y_log10()
+    
+    ggplotly(p) %>% config(displayModeBar = FALSE)
+  })
+  
+  #Cummulative deaths on line graph Log scale
+  output$plot_death_linear <- renderPlotly({
+    p <- ggplot(data = covid_df_all, aes(x = datereported_0, y = cum_total_deaths))+
+      geom_line(color = "#FF0000", size = 2) +
+      xlab("") +
+      ylab("Total Deaths")+
+      ggtitle("Total Deaths (Linear Scale )") +
+      scale_x_date(date_labels = "%d-%b", date_breaks = "1 week") +
+      theme(axis.text.x=element_text(angle=45, hjust=1)) +
+      theme(plot.title = element_text(color="black", size=14, face="bold"))+
+      my_theme
+    
+    ggplotly(p) %>% config(displayModeBar = FALSE)
+  })
   #Dislay data table
   output$dailyIncidence <-  DT::renderDataTable({
     dt <- covid_df_all %>%
-      select(datereported_0,new_cases,new_deaths) %>%
+      select(datereported_0,new_cases,new_deaths,new_recovered) %>%
       filter(new_cases>0 | new_deaths >0)
     #add functionality to the download button
     datatable(dt,
               callback = JS("$('div.dwnld').append($('#download1'));"),
               extensions = 'Buttons',
               options = list(
-                columnDefs = list(list(className = 'dt-center', targets = 2:3))) )
+                columnDefs = list(list(className = 'dt-center', targets = 2:4))) )
     
   })
   
