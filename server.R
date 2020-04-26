@@ -170,19 +170,19 @@ server <- function(input, output){
   
   output$totalDeaths<- renderText({
     d <- t_deaths()
-    p <- trunc(d/t_cases()*100)
+    p <- round(d/t_cases()*100,1)
     paste(d,"(",p,"%)")
   })
   
   output$totalRecovered <- renderText({
     r <- t_recovered()
-    p <- trunc(r/t_cases() *100)
+    p <- round(r/t_cases() *100,1)
     paste(r,"(",p,"%)")
   })
   
   output$totalActive <- renderText({
     a <- t_cases() - t_recovered() - t_deaths()
-    p <- trunc(a/t_cases() *100) 
+    p <- round(a/t_cases() *100,1) 
     paste(a,"(",p,"%)")
   })
   
@@ -200,21 +200,22 @@ server <- function(input, output){
   
   #Combined bar graph daily cases, deaths and recovered cases
   output$plot2_combined <- renderPlotly({
-    idata <- as.incidence(x = covid_df_all[,c("new_cases","new_deaths","new_recovered")], dates = covid_df_all$datereported_0 )
+    idata <- as.incidence(x = covid_df_all[,c("new_deaths","new_recovered","new_cases")], dates = covid_df_all$datereported_0 )
     
-    p<-plot(idata, border="white") + my_theme + theme(legend.position = c(0.15, 0.8))+
+    p<-plot(idata, border="white" , color = c("new_cases" = "#faa632", "new_deaths" = "#FF0000", "new_recovered" = "#136207")) + my_theme + theme(legend.position = c(0.15, 0.8))+
        theme(legend.position = "top", 
               legend.direction   = "horizontal",
               legend.title = element_blank()) +
       scale_x_date(labels = date_format("%d-%b"))
+      
     ggplotly(p) %>% config(displayModeBar = FALSE)
   })
   
   #Combined bar graph Cummulative cases, deaths and recovered cases
   output$plot3_cummulative <- renderPlotly({
-    idata <- as.incidence(x = covid_df_all[,c("new_cases","new_deaths","new_recovered")], dates = covid_df_all$datereported_0 )
+    idata <- as.incidence(x = covid_df_all[,c("new_cases","new_recovered","new_deaths")], dates = covid_df_all$datereported_0 )
     iculum <- cumulate(idata)
-    p<-plot(iculum) + my_theme + theme(legend.position = "top", 
+    p<-plot(iculum, color = c("new_cases" = "#faa632", "new_deaths" = "#FF0000", "new_recovered" = "#136207")) + my_theme + theme(legend.position = "top", 
                                        legend.direction   = "horizontal",
                                        legend.title = element_blank()) +
       scale_x_date(labels = date_format("%d-%b"))
